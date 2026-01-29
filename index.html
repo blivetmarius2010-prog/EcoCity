@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Retro Bounce</title>
+<title>Retro Bounce FIX</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -18,7 +18,7 @@ body{
 
 .console{
   background:#0e7490;
-  padding:18px;
+  padding:16px;
   border-radius:22px;
   width:360px;
 }
@@ -26,7 +26,7 @@ body{
 .screen{
   background:#1e3a8a;
   height:240px;
-  border:6px solid #000;
+  border:6px solid black;
   position:relative;
   overflow:hidden;
   image-rendering:pixelated;
@@ -42,8 +42,8 @@ body{
 }
 
 .ball{
-  width:22px;
-  height:22px;
+  width:26px;
+  height:26px;
   background:#ef4444;
   border-radius:50%;
   position:absolute;
@@ -78,11 +78,6 @@ body{
   font-size:20px;
   user-select:none;
 }
-
-.action{
-  background:#333;
-  border-radius:50%;
-}
 </style>
 </head>
 
@@ -100,52 +95,64 @@ body{
 
   <div class="controls">
     <div class="btn" id="left">⬅️</div>
-    <div class="btn action" id="jump">⬆️</div>
+    <div class="btn" id="jump">⬆️</div>
     <div class="btn" id="right">➡️</div>
   </div>
 </div>
 
 <script>
-const screen=document.getElementById("screen");
-const player=document.getElementById("player");
-const gameover=document.getElementById("gameover");
+const screen = document.getElementById("screen");
+const player = document.getElementById("player");
+const gameover = document.getElementById("gameover");
 
 let px=160, py=0, vy=0;
 let balls=[];
 let running=true;
 
+const GRAVITY = -0.7;
+const FLOOR = 10;
+
 function spawnBall(){
   const b=document.createElement("div");
   b.className="ball";
   b.x=Math.random()*300;
-  b.y=200;
-  b.vx=Math.random()<0.5?-2:2;
+  b.y=220;
+  b.vx=Math.random()<0.5?-2.2:2.2;
+  b.vy=0;
   screen.appendChild(b);
   balls.push(b);
 }
 
-setInterval(()=>{ if(running) spawnBall(); },1500);
+setInterval(()=>{ if(running) spawnBall(); },1800);
 
 function loop(){
   if(running){
-    // gravité joueur
-    if(py>0 || vy>0){
-      py+=vy;
-      vy-=1;
-      if(py<=0){py=0;vy=0}
-      player.style.bottom=(10+py)+"px";
-    }
+    // joueur
+    vy+=GRAVITY;
+    py+=vy;
+    if(py<=0){py=0;vy=0;}
+    player.style.bottom=(FLOOR+py)+"px";
 
-    balls.forEach((b,i)=>{
+    balls.forEach(b=>{
+      // physique boule
+      b.vy+=GRAVITY;
+      b.y+=b.vy;
       b.x+=b.vx;
-      if(b.x<=0 || b.x>=318) b.vx*=-1;
+
+      if(b.y<=0){
+        b.y=0;
+        b.vy=8;
+      }
+
+      if(b.x<=0 || b.x>=314) b.vx*=-1;
+
+      b.style.bottom=(FLOOR+b.y)+"px";
       b.style.left=b.x+"px";
 
-      // collision
-      if(
-        Math.abs(b.x-px)<18 &&
-        py<12
-      ){
+      // collision réelle
+      const dx=Math.abs(b.x-px);
+      const dy=Math.abs(b.y-py);
+      if(dx<20 && dy<20){
         end();
       }
     });
@@ -168,8 +175,8 @@ function restart(){
 }
 
 function left(){ px=Math.max(0,px-12); player.style.left=px+"px"; }
-function right(){ px=Math.min(318,px+12); player.style.left=px+"px"; }
-function jump(){ vy=14; }
+function right(){ px=Math.min(314,px+12); player.style.left=px+"px"; }
+function jump(){ vy=12; }
 
 document.getElementById("left").ontouchstart=left;
 document.getElementById("right").ontouchstart=right;
@@ -186,6 +193,8 @@ loop();
 
 </body>
 </html>
+
+
 
 
 
